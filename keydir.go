@@ -31,7 +31,7 @@ func (k *KeyDir) Delete(key []byte) {
 }
 
 func (k *KeyDir) GetKeys() [][]byte {
-	keys := make([][]byte, len(k.m))
+	keys := make([][]byte, 0, len(k.m))
 	for key := range k.m {
 		keys = append(keys, []byte(key))
 	}

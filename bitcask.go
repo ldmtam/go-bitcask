@@ -30,8 +30,20 @@ func New(optsFn ...OptFn) (*Bitcask, error) {
 		return nil, err
 	}
 
+	keyDir := NewKeyDir()
+
 	var nextSegmentID int
 	if len(dirEntries) > 0 {
+		filesName := make([]string, 0, len(dirEntries))
+		for _, dirEntry := range dirEntries {
+			filesName = append(filesName, dirEntry.Name())
+		}
+
+		err = keyDir.WarmUp(opts.DirName, filesName)
+		if err != nil {
+			return nil, err
+		}
+
 		lastSegment := dirEntries[len(dirEntries)-1]
 		nextSegmentID = extractSegmentID(lastSegment.Name())
 	}
@@ -45,7 +57,7 @@ func New(optsFn ...OptFn) (*Bitcask, error) {
 		option:         opts,
 		openedSegments: make(map[int]*Segment),
 		activeSegment:  activeSegment,
-		keyDir:         NewKeyDir(),
+		keyDir:         keyDir,
 	}, nil
 }
 
@@ -103,6 +115,8 @@ func (b *Bitcask) Get(key []byte) ([]byte, error) {
 		if err != nil {
 			return nil, ErrOpenSegmentFailed
 		}
+
+		b.openedSegments[entry.FileID] = segment
 	}
 
 	return segment.Read(entry.ValuePos, entry.ValueSize)
@@ -129,6 +143,29 @@ func (b *Bitcask) ListKeys() [][]byte {
 }
 
 func encode(key, val, ts []byte) ([]byte, error) {
+	rawData, err := encodeRaw(key, val, ts)
+
+	// calculate checksum
+	checksum := crc32.ChecksumIEEE(rawData)
+
+	buf := bytes.NewBuffer(nil)
+
+	// write checksum
+	_, err = buf.Write(uint32ToBytes(checksum))
+	if err != nil {
+		return nil, err
+	}
+
+	// write data
+	_, err = buf.Write(rawData)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func encodeRaw(key, val, ts []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 
 	// write timestamp
@@ -157,26 +194,6 @@ func encode(key, val, ts []byte) ([]byte, error) {
 
 	// write value
 	_, err = buf.Write(val)
-	if err != nil {
-		return nil, err
-	}
-
-	data := buf.Bytes()
-
-	// calculate checksum
-	checksum := crc32.ChecksumIEEE(data)
-
-	// re-initialize buffer
-	buf = bytes.NewBuffer(nil)
-
-	// write checksum
-	_, err = buf.Write(uint32ToBytes(checksum))
-	if err != nil {
-		return nil, err
-	}
-
-	// write data
-	_, err = buf.Write(data)
 	if err != nil {
 		return nil, err
 	}

@@ -16,4 +16,5 @@ var (
 var (
 	ErrKeyNotFound       = errors.New("key not found")
 	ErrOpenSegmentFailed = errors.New("open segment failed")
+	ErrChecksumNotMatch  = errors.New("checksum not match")
 )

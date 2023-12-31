@@ -50,6 +50,9 @@ func New(optsFn ...OptFn) (*Bitcask, error) {
 }
 
 func (b *Bitcask) Close() error {
+	for _, segment := range b.openedSegments {
+		segment.Close()
+	}
 	return b.activeSegment.Close()
 }
 

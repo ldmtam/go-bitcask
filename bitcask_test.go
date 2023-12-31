@@ -12,7 +12,7 @@ func TestCreateNewBitcask(t *testing.T) {
 	dirName := "./test"
 	defer os.RemoveAll(dirName)
 
-	bc, err := NewBitcask(WithDirName(dirName))
+	bc, err := New(WithDirName(dirName))
 	assert.Nil(t, err)
 	assert.NotNil(t, bc)
 }
@@ -37,7 +37,7 @@ func TestSimplePutGet(t *testing.T) {
 	dirName := "./test"
 	defer os.RemoveAll(dirName)
 
-	bc, err := NewBitcask(
+	bc, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
 	)
@@ -59,7 +59,7 @@ func TestSimplePutDelete(t *testing.T) {
 	dirName := "./test"
 	defer os.RemoveAll(dirName)
 
-	bc, err := NewBitcask(
+	bc, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
 	)

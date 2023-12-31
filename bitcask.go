@@ -14,7 +14,7 @@ type Bitcask struct {
 	keyDir         *KeyDir
 }
 
-func NewBitcask(optsFn ...OptFn) (*Bitcask, error) {
+func New(optsFn ...OptFn) (*Bitcask, error) {
 	opts := &Option{}
 	for _, optFn := range optsFn {
 		optFn(opts)

@@ -79,3 +79,36 @@ func TestSimplePutDelete(t *testing.T) {
 	assert.Nil(t, fetchedVal)
 	assert.Equal(t, ErrKeyNotFound, err)
 }
+
+func TestListKeys(t *testing.T) {
+	dirName := "./test"
+	defer os.RemoveAll(dirName)
+
+	bc, err := New(
+		WithDirName(dirName),
+		WithSegmentSize(128), // bytes
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, bc)
+
+	key1, val1 := []byte("key1"), []byte("val1")
+	err = bc.Put(key1, val1)
+	assert.Nil(t, err)
+
+	key2, val2 := []byte("key2"), []byte("val2")
+	err = bc.Put(key2, val2)
+	assert.Nil(t, err)
+
+	keys := bc.ListKeys()
+	assert.Equal(t, 2, len(keys))
+
+	keySet := make(map[string]struct{})
+	for _, key := range keys {
+		keySet[string(key)] = struct{}{}
+	}
+
+	delete(keySet, string(key1))
+	delete(keySet, string(key2))
+
+	assert.Equal(t, 0, len(keySet))
+}

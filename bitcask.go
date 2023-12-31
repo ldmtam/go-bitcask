@@ -121,6 +121,10 @@ func (b *Bitcask) Delete(key []byte) error {
 	return nil
 }
 
+func (b *Bitcask) ListKeys() [][]byte {
+	return b.keyDir.GetKeys()
+}
+
 func encode(key, val, ts []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 

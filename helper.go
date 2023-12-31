@@ -30,7 +30,7 @@ func uint64ToBytes(u uint64) []byte {
 }
 
 func bytesToUint64(b []byte) uint64 {
-	return binary.BigEndian.Uint64(b)
+	return binary.LittleEndian.Uint64(b)
 }
 
 func getSegmentFilename(id int) string {

@@ -27,7 +27,7 @@ func bytesToUint64(b []byte) uint64 {
 	return binary.LittleEndian.Uint64(b)
 }
 
-func extractSegmentID(filename string) int {
+func extractID(filename string) int {
 	arr := strings.Split(filename, ".")
 	fileID, _ := strconv.Atoi(arr[0])
 	return fileID
@@ -39,4 +39,8 @@ func getSegmentFilename(id int) string {
 
 func getHintFilename(id int) string {
 	return fmt.Sprintf("%06d.hint", id)
+}
+
+func getMergeFilename(id int) string {
+	return fmt.Sprintf("%06d.merge", id)
 }

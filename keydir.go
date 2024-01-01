@@ -5,41 +5,55 @@ import (
 	"hash/crc32"
 	"os"
 	"path"
+	"sync"
 )
 
 type Entry struct {
-	FileID    int
+	FileID    string
 	ValueSize int
 	ValuePos  int
 	Timestamp uint32
 }
 
 type KeyDir struct {
-	m map[string]*Entry
+	kd map[string]*Entry
+	mu sync.RWMutex
 }
 
 func NewKeyDir() *KeyDir {
 	return &KeyDir{
-		m: make(map[string]*Entry),
+		kd: make(map[string]*Entry),
 	}
 }
 
 func (k *KeyDir) Set(key []byte, entry *Entry) {
-	k.m[string(key)] = entry
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	k.kd[string(key)] = entry
 }
 
 func (k *KeyDir) Get(key []byte) (*Entry, bool) {
-	entry, ok := k.m[string(key)]
+	k.mu.RLock()
+	defer k.mu.RUnlock()
+
+	entry, ok := k.kd[string(key)]
 	return entry, ok
 }
 
 func (k *KeyDir) Delete(key []byte) {
-	delete(k.m, string(key))
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	delete(k.kd, string(key))
 }
 
 func (k *KeyDir) GetKeys() [][]byte {
-	keys := make([][]byte, 0, len(k.m))
-	for key := range k.m {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	keys := make([][]byte, 0, len(k.kd))
+	for key := range k.kd {
 		keys = append(keys, []byte(key))
 	}
 
@@ -47,6 +61,9 @@ func (k *KeyDir) GetKeys() [][]byte {
 }
 
 func (k *KeyDir) WarmUp(dirName string, filesName []string) error {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
 	for _, fileName := range filesName {
 		filePath := path.Join(dirName, fileName)
 		data, err := os.ReadFile(filePath)
@@ -88,8 +105,8 @@ func (k *KeyDir) WarmUp(dirName string, filesName []string) error {
 
 			offset += checksumLen + tsLen + keySizeLen + valueSizeLen + int(keySize)
 
-			k.m[string(key)] = &Entry{
-				FileID:    extractSegmentID(fileName),
+			k.kd[string(key)] = &Entry{
+				FileID:    fileName,
 				ValueSize: int(valueSize),
 				ValuePos:  offset,
 				Timestamp: ts,
@@ -100,4 +117,13 @@ func (k *KeyDir) WarmUp(dirName string, filesName []string) error {
 	}
 
 	return nil
+}
+
+func (k *KeyDir) Merge(k2 *KeyDir) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	for key, entry := range k2.kd {
+		k.kd[string(key)] = entry
+	}
 }

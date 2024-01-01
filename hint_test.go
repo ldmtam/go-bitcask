@@ -11,7 +11,7 @@ func TestCreateNewHint(t *testing.T) {
 	os.MkdirAll("test", 0775)
 	defer os.RemoveAll("test")
 
-	h, err := NewHint("test", 1)
+	h, err := NewHint("test", "1.hint")
 	assert.Nil(t, err)
 	assert.NotNil(t, h)
 }
@@ -20,14 +20,14 @@ func TestSimpleWriteReadHint(t *testing.T) {
 	os.MkdirAll("test", 0775)
 	defer os.RemoveAll("test")
 
-	h, err := NewHint("test", 1)
+	h, err := NewHint("test", "1.hint")
 	assert.Nil(t, err)
 	assert.NotNil(t, h)
 
 	keyDir := NewKeyDir()
 	key := []byte("key1")
 	entry := &Entry{
-		FileID:    1,
+		FileID:    "1.hint",
 		ValueSize: 2,
 		ValuePos:  3,
 		Timestamp: uint32(1234),
@@ -41,7 +41,7 @@ func TestSimpleWriteReadHint(t *testing.T) {
 	err = h.Close()
 	assert.Nil(t, err)
 
-	h2, err := OpenHint("test", 1)
+	h2, err := OpenHint("test", "1.hint")
 	assert.Nil(t, err)
 	assert.NotNil(t, h2)
 

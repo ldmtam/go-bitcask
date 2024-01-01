@@ -8,12 +8,12 @@ import (
 
 type Segment struct {
 	f        *os.File
-	id       int
+	id       string
 	readOnly bool
 }
 
-func OpenSegment(dir string, id int) (*Segment, error) {
-	filePath := path.Join(dir, getSegmentFilename(id))
+func OpenSegment(dir, id string) (*Segment, error) {
+	filePath := path.Join(dir, id)
 	f, err := os.OpenFile(filePath, os.O_RDONLY, 0755)
 	if err != nil {
 		return nil, err
@@ -26,8 +26,8 @@ func OpenSegment(dir string, id int) (*Segment, error) {
 	}, nil
 }
 
-func NewSegment(dir string, id int) (*Segment, error) {
-	filePath := path.Join(dir, getSegmentFilename(id))
+func NewSegment(dir, id string) (*Segment, error) {
+	filePath := path.Join(dir, id)
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0755)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (s *Segment) GetOffset() (int, error) {
 	return int(info.Size()), nil
 }
 
-func (s *Segment) GetID() int {
+func (s *Segment) GetID() string {
 	return s.id
 }
 

@@ -10,12 +10,12 @@ import (
 
 type Hint struct {
 	f        *os.File
-	id       int
+	id       string
 	readOnly bool
 }
 
-func NewHint(dir string, id int) (*Hint, error) {
-	filePath := path.Join(dir, getHintFilename(id))
+func NewHint(dir, id string) (*Hint, error) {
+	filePath := path.Join(dir, id)
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0755)
 	if err != nil {
 		return nil, err
@@ -27,8 +27,8 @@ func NewHint(dir string, id int) (*Hint, error) {
 	}, nil
 }
 
-func OpenHint(dir string, id int) (*Hint, error) {
-	filePath := path.Join(dir, getHintFilename(id))
+func OpenHint(dir, id string) (*Hint, error) {
+	filePath := path.Join(dir, id)
 	f, err := os.OpenFile(filePath, os.O_RDONLY, 0755)
 	if err != nil {
 		return nil, err

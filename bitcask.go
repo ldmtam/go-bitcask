@@ -9,7 +9,7 @@ import (
 
 type Bitcask struct {
 	option         *Option
-	openedSegments map[int]*Segment
+	openedSegments map[string]*Segment
 	activeSegment  *Segment
 	keyDir         *KeyDir
 }
@@ -45,17 +45,17 @@ func New(optsFn ...OptFn) (*Bitcask, error) {
 		}
 
 		lastSegment := dirEntries[len(dirEntries)-1]
-		nextSegmentID = extractSegmentID(lastSegment.Name())
+		nextSegmentID = extractID(lastSegment.Name())
 	}
 
-	activeSegment, err := NewSegment(opts.DirName, nextSegmentID)
+	activeSegment, err := NewSegment(opts.DirName, getSegmentFilename(nextSegmentID))
 	if err != nil {
 		return nil, err
 	}
 
 	return &Bitcask{
 		option:         opts,
-		openedSegments: make(map[int]*Segment),
+		openedSegments: make(map[string]*Segment),
 		activeSegment:  activeSegment,
 		keyDir:         keyDir,
 	}, nil
@@ -81,8 +81,8 @@ func (b *Bitcask) Put(key, val []byte) error {
 	}
 
 	if segmentOffset+len(encodedData) > b.option.SegmentSize {
-		nextSegmentID := b.activeSegment.GetID() + 1
-		b.activeSegment, err = NewSegment(b.option.DirName, nextSegmentID)
+		nextSegmentID := extractID(b.activeSegment.GetID()) + 1
+		b.activeSegment, err = NewSegment(b.option.DirName, getSegmentFilename(nextSegmentID))
 		if err != nil {
 			return err
 		}

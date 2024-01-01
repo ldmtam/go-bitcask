@@ -115,7 +115,7 @@ func (m *Merger) getMergeFilesName() ([]string, string, error) {
 		filesName = append(filesName, fileName)
 	}
 
-	if m.mergeOpt.Min != 0 && len(filesName) < m.mergeOpt.Min {
+	if m.mergeOpt.MinFiles != 0 && len(filesName) < m.mergeOpt.MinFiles {
 		return nil, "", ErrNotEnoughDataFiles
 	}
 

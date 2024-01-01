@@ -3,7 +3,9 @@ package gobitcask
 import (
 	"bytes"
 	"hash/crc32"
+	"io/fs"
 	"os"
+	"path"
 	"time"
 )
 
@@ -12,12 +14,19 @@ type Bitcask struct {
 	openedSegments map[string]*Segment
 	activeSegment  *Segment
 	keyDir         *KeyDir
+	merger         *Merger
 }
 
 func New(optsFn ...OptFn) (*Bitcask, error) {
 	opts := &Option{}
 	for _, optFn := range optsFn {
 		optFn(opts)
+	}
+
+	db := &Bitcask{
+		option:         opts,
+		openedSegments: make(map[string]*Segment),
+		keyDir:         NewKeyDir(),
 	}
 
 	dirEntries, err := os.ReadDir(opts.DirName)
@@ -30,16 +39,9 @@ func New(optsFn ...OptFn) (*Bitcask, error) {
 		return nil, err
 	}
 
-	keyDir := NewKeyDir()
-
 	var nextSegmentID int
 	if len(dirEntries) > 0 {
-		filesName := make([]string, 0, len(dirEntries))
-		for _, dirEntry := range dirEntries {
-			filesName = append(filesName, dirEntry.Name())
-		}
-
-		err = keyDir.WarmUp(opts.DirName, filesName)
+		err = warmupKeyDir(db, dirEntries)
 		if err != nil {
 			return nil, err
 		}
@@ -52,19 +54,22 @@ func New(optsFn ...OptFn) (*Bitcask, error) {
 	if err != nil {
 		return nil, err
 	}
+	db.activeSegment = activeSegment
 
-	return &Bitcask{
-		option:         opts,
-		openedSegments: make(map[string]*Segment),
-		activeSegment:  activeSegment,
-		keyDir:         keyDir,
-	}, nil
+	merger := NewMerger(opts.DirName, db.keyDir, opts.MergeOpt)
+	db.merger = merger
+	go merger.Start()
+
+	return db, nil
 }
 
 func (b *Bitcask) Close() error {
+	b.merger.Stop()
+
 	for _, segment := range b.openedSegments {
 		segment.Close()
 	}
+
 	return b.activeSegment.Close()
 }
 
@@ -140,6 +145,46 @@ func (b *Bitcask) Delete(key []byte) error {
 
 func (b *Bitcask) ListKeys() [][]byte {
 	return b.keyDir.GetKeys()
+}
+
+func warmupKeyDir(db *Bitcask, dirEntries []fs.DirEntry) error {
+	filesName := make([]string, 0, len(dirEntries))
+	fileNameMap := make(map[string]bool)
+
+	for _, dirEntry := range dirEntries {
+		filesName = append(filesName, dirEntry.Name())
+		fileNameMap[dirEntry.Name()] = true
+	}
+
+	dataFilesName := make([]string, 0)
+
+	// warm up key dir from hint files
+	for _, fileName := range filesName {
+		if path.Ext(fileName) == ".hint" {
+			hint, err := OpenHint(db.option.DirName, fileName)
+			if err != nil {
+				return err
+			}
+			defer hint.Close()
+
+			keyDir, err := hint.Read()
+			if err != nil {
+				return err
+			}
+
+			db.keyDir.Merge(keyDir)
+		} else if path.Ext(fileName) == ".data" && fileNameMap[getHintFilename(extractID(fileName))] {
+			dataFilesName = append(dataFilesName, fileName)
+		}
+	}
+
+	// warm up key dir from data files
+	err := db.keyDir.WarmUp(db.option.DirName, dataFilesName)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func encode(key, val, ts []byte) ([]byte, error) {

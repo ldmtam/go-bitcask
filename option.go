@@ -12,7 +12,7 @@ type Option struct {
 
 type MergeOption struct {
 	Interval time.Duration
-	Min      int
+	MinFiles int
 }
 
 func WithDirName(dirName string) OptFn {

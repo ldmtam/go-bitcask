@@ -11,6 +11,10 @@ Create new instance of **go-bitcask**
 db, err := gobitcask.New(
     WithDirName(dirName),
     WithSegmentSize(128), // bytes
+    WithMergeOpt(&MergeOption{
+        Interval: 6 * time.Hour, // run compaction every 6 hours
+        Min: 5,                  // at least 5 data files before merging
+    })
 )
 if err != nil {
     log.Fatalf("create gobitcask instance failed: %v", err)

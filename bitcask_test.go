@@ -1,6 +1,7 @@
 package gobitcask
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -12,7 +13,12 @@ func TestCreateNewBitcask(t *testing.T) {
 	dirName := "./test"
 	defer os.RemoveAll(dirName)
 
-	bc, err := New(WithDirName(dirName))
+	bc, err := New(
+		WithDirName(dirName),
+		WithMergeOpt(&MergeOption{
+			Interval: 6 * time.Hour,
+		}),
+	)
 	assert.Nil(t, err)
 	assert.NotNil(t, bc)
 }
@@ -40,6 +46,9 @@ func TestSimplePutGet(t *testing.T) {
 	bc, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 6 * time.Hour,
+		}),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, bc)
@@ -62,6 +71,9 @@ func TestSimplePutDelete(t *testing.T) {
 	bc, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 6 * time.Hour,
+		}),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, bc)
@@ -87,6 +99,9 @@ func TestListKeys(t *testing.T) {
 	bc, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 6 * time.Hour,
+		}),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, bc)
@@ -115,23 +130,23 @@ func TestListKeys(t *testing.T) {
 
 func TestKeyDirWarmUp(t *testing.T) {
 	dirName := "./test"
-	defer os.RemoveAll(dirName)
+	// defer os.RemoveAll(dirName)
 
 	bc, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 6 * time.Hour,
+		}),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, bc)
 
-	key1, val1 := []byte("key1"), []byte("val1")
-	key2, val2 := []byte("key2"), []byte("val2")
-
-	err = bc.Put(key1, val1)
-	assert.Nil(t, err)
-
-	err = bc.Put(key2, val2)
-	assert.Nil(t, err)
+	for i := 0; i < 2; i++ {
+		key, val := fmt.Sprintf("key%v", i), fmt.Sprintf("val%v", i)
+		err = bc.Put([]byte(key), []byte(val))
+		assert.Nil(t, err)
+	}
 
 	err = bc.Close()
 	assert.Nil(t, err)
@@ -139,15 +154,61 @@ func TestKeyDirWarmUp(t *testing.T) {
 	bc2, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 6 * time.Hour,
+		}),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, bc2)
 
-	fetchedVal1, err := bc2.Get(key1)
-	assert.Nil(t, err)
-	assert.EqualValues(t, val1, fetchedVal1)
+	for i := 0; i < 2; i++ {
+		key, val := fmt.Sprintf("key%v", i), fmt.Sprintf("val%v", i)
+		fetchedVal, err := bc.Get([]byte(key))
+		assert.Nil(t, err)
+		assert.EqualValues(t, val, fetchedVal)
+	}
+}
 
-	fetchedVal2, err := bc2.Get(key2)
+func TestKeyDirWarmUpWithHintFiles(t *testing.T) {
+	dirName := "./test"
+	defer os.RemoveAll(dirName)
+
+	bc, err := New(
+		WithDirName(dirName),
+		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 500 * time.Millisecond,
+		}),
+	)
 	assert.Nil(t, err)
-	assert.EqualValues(t, val2, fetchedVal2)
+	assert.NotNil(t, bc)
+
+	for i := 0; i < 100; i++ {
+		key, val := fmt.Sprintf("key%v", i), fmt.Sprintf("val%v", i)
+		err = bc.Put([]byte(key), []byte(val))
+		assert.Nil(t, err)
+	}
+
+	m := NewMerger(dirName, bc.keyDir, &MergeOption{Interval: 50 * time.Millisecond})
+	go m.Start()
+
+	<-time.After(500 * time.Millisecond)
+	bc.Close()
+
+	bc2, err := New(
+		WithDirName(dirName),
+		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 500 * time.Millisecond,
+		}),
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, bc2)
+
+	for i := 0; i < 100; i++ {
+		key, val := fmt.Sprintf("key%v", i), fmt.Sprintf("val%v", i)
+		fetchedVal, err := bc.Get([]byte(key))
+		assert.Nil(t, err)
+		assert.EqualValues(t, val, fetchedVal)
+	}
 }

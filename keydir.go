@@ -77,7 +77,7 @@ func (k *KeyDir) WarmUp(dirName string, filesName []string) error {
 			val := buf.Next(int(valueSize))
 
 			// encode data
-			data, err := encodeRaw(key, val, uint32ToBytes(ts))
+			data, err := encodeRawData(key, val, uint32ToBytes(ts))
 			if err != nil {
 				return err
 			}

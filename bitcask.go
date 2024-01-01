@@ -143,7 +143,7 @@ func (b *Bitcask) ListKeys() [][]byte {
 }
 
 func encode(key, val, ts []byte) ([]byte, error) {
-	rawData, err := encodeRaw(key, val, ts)
+	rawData, err := encodeRawData(key, val, ts)
 
 	// calculate checksum
 	checksum := crc32.ChecksumIEEE(rawData)
@@ -165,7 +165,7 @@ func encode(key, val, ts []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func encodeRaw(key, val, ts []byte) ([]byte, error) {
+func encodeRawData(key, val, ts []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 
 	// write timestamp

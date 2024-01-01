@@ -16,6 +16,9 @@ func TestMergeData(t *testing.T) {
 	bc, err := New(
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 6 * time.Hour,
+		}),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, bc)

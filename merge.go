@@ -43,7 +43,9 @@ func (m *Merger) Start() {
 		select {
 		case <-ch:
 			mergedFiles, lastSegmentName, err := m.getMergeFilesName()
-			if err != nil {
+			if err == ErrNotEnoughDataFiles {
+				continue
+			} else if err != nil {
 				panic(err) // TODO: should handle this error properly
 			}
 
@@ -113,6 +115,10 @@ func (m *Merger) getMergeFilesName() ([]string, string, error) {
 		filesName = append(filesName, fileName)
 	}
 
+	if m.mergeOpt.Min != 0 && len(filesName) < m.mergeOpt.Min {
+		return nil, "", ErrNotEnoughDataFiles
+	}
+
 	return filesName, lastSegmentName, nil
 }
 
@@ -146,6 +152,11 @@ func (m *Merger) mergeData(filesName []string, lastSegmentName string) (*KeyDir,
 
 			// get value
 			val := buf.Next(int(valueSize))
+
+			// key/value pair is deleted
+			if bytes.Compare(val, tombstoneValue) == 0 {
+				continue
+			}
 
 			diskEntryMap[string(key)] = &DiskEntry{
 				Checksum: checksum,

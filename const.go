@@ -14,7 +14,8 @@ var (
 )
 
 var (
-	ErrKeyNotFound       = errors.New("key not found")
-	ErrOpenSegmentFailed = errors.New("open segment failed")
-	ErrChecksumNotMatch  = errors.New("checksum not match")
+	ErrKeyNotFound        = errors.New("key not found")
+	ErrOpenSegmentFailed  = errors.New("open segment failed")
+	ErrChecksumNotMatch   = errors.New("checksum not match")
+	ErrNotEnoughDataFiles = errors.New("not enough data files to merge")
 )

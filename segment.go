@@ -77,5 +77,10 @@ func (s *Segment) GetID() int {
 }
 
 func (s *Segment) Close() error {
+	err := s.f.Sync()
+	if err != nil {
+		return err
+	}
+
 	return s.f.Close()
 }

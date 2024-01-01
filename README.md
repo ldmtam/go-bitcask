@@ -1,19 +1,26 @@
 # GO-BITCASK
 
-### What is Bitcask
-A Log-Structured Hash Table for Fast Key/Value Data which is used by [Riak](https://riak.com/)
+### What is Go-Bitcask
+A Log-Structured Hash Table for Fast Key/Value Data implemented in Golang
+
+Go-Bitcask storage engine features:
+1. Low latency per item read or written
+2. High throughput, especially when writing an incoming stream of random items
+3. Crash friendliness, both in terms of fast recovery and not losing data
+4. Ease of backup and restore
+5. Relatively simple, understandable code structure and data format with high unit-test coverage (84%)
 
 For more details, please reference to [Bitcask whitepaper](https://riak.com/assets/bitcask-intro.pdf)
 
-### How to use
+### Usage
 Create new instance of **go-bitcask**
 ```
 db, err := gobitcask.New(
     WithDirName(dirName),
-    WithSegmentSize(128), // bytes
+    WithSegmentSize(1024 * 1024 * 1024),  // 1 GB per segment file
     WithMergeOpt(&MergeOption{
-        Interval: 6 * time.Hour, // run compaction every 6 hours
-        Min: 5,                  // at least 5 data files before merging
+        Interval: 6 * time.Hour,          // run compaction every 6 hours
+        MinFiles: 5,                      // at least 5 data files before merging
     })
 )
 if err != nil {
@@ -43,6 +50,14 @@ Delete a key/value pair by key
 ```
 err := db.Delete([]byte("key1"))
 if err != nil {
-    log.Fatal("delete data from gobitcask failed: %v", err)
+    log.Fatalf("delete data from gobitcask failed: %v", err)
+}
+```
+
+List all keys
+```
+keys, err := db.ListKeys()
+if err != nil {
+    log.Fatalf("list keys from gobitcask failed: %v", err)
 }
 ```

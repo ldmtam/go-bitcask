@@ -61,3 +61,14 @@ if err != nil {
     log.Fatalf("list keys from gobitcask failed: %v", err)
 }
 ```
+
+Fold over all key/value pairs
+```
+err := db.Fold(func(key, val []byte) error {
+    fmt.Printf("key: %v, val: %v\n", string(key), string(val))
+    return nil
+})
+if err != nil {
+    log.Fatalf("fold over all key/value pairs failed: %v", err)
+}
+```

@@ -49,8 +49,8 @@ func (k *KeyDir) Delete(key []byte) {
 }
 
 func (k *KeyDir) GetKeys() [][]byte {
-	k.mu.Lock()
-	defer k.mu.Unlock()
+	k.mu.RLock()
+	defer k.mu.RUnlock()
 
 	keys := make([][]byte, 0, len(k.kd))
 	for key := range k.kd {
@@ -126,4 +126,16 @@ func (k *KeyDir) Merge(k2 *KeyDir) {
 	for key, entry := range k2.kd {
 		k.kd[string(key)] = entry
 	}
+}
+
+func (k *KeyDir) GetKeyAndEntry() map[string]*Entry {
+	k.mu.RLock()
+	defer k.mu.RUnlock()
+
+	result := make(map[string]*Entry, len(k.kd))
+	for key, entry := range k.kd {
+		result[string(key)] = entry
+	}
+
+	return result
 }

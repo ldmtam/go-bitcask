@@ -112,19 +112,7 @@ func (b *Bitcask) Get(key []byte) ([]byte, error) {
 		return nil, ErrKeyNotFound
 	}
 
-	var err error
-
-	segment, ok := b.openedSegments[entry.FileID]
-	if !ok {
-		segment, err = OpenSegment(b.option.DirName, entry.FileID)
-		if err != nil {
-			return nil, ErrOpenSegmentFailed
-		}
-
-		b.openedSegments[entry.FileID] = segment
-	}
-
-	return segment.Read(entry.ValuePos, entry.ValueSize)
+	return b.get(key, entry)
 }
 
 func (b *Bitcask) Delete(key []byte) error {
@@ -145,6 +133,40 @@ func (b *Bitcask) Delete(key []byte) error {
 
 func (b *Bitcask) ListKeys() [][]byte {
 	return b.keyDir.GetKeys()
+}
+
+func (b *Bitcask) Fold(fn func(key, val []byte) error) error {
+	keyAndEntry := b.keyDir.GetKeyAndEntry()
+
+	for key, entry := range keyAndEntry {
+		val, err := b.get([]byte(key), entry)
+		if err != nil {
+			return err
+		}
+
+		err = fn([]byte(key), val)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (b *Bitcask) get(key []byte, entry *Entry) ([]byte, error) {
+	var err error
+
+	segment, ok := b.openedSegments[entry.FileID]
+	if !ok {
+		segment, err = OpenSegment(b.option.DirName, entry.FileID)
+		if err != nil {
+			return nil, ErrOpenSegmentFailed
+		}
+
+		b.openedSegments[entry.FileID] = segment
+	}
+
+	return segment.Read(entry.ValuePos, entry.ValueSize)
 }
 
 func warmupKeyDir(db *Bitcask, dirEntries []fs.DirEntry) error {

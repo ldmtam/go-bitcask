@@ -212,3 +212,35 @@ func TestKeyDirWarmUpWithHintFiles(t *testing.T) {
 		assert.EqualValues(t, val, fetchedVal)
 	}
 }
+
+func TestFold(t *testing.T) {
+	dirName := "./test"
+	defer os.RemoveAll(dirName)
+
+	bc, err := New(
+		WithDirName(dirName),
+		WithSegmentSize(128), // bytes
+		WithMergeOpt(&MergeOption{
+			Interval: 500 * time.Millisecond,
+		}),
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, bc)
+
+	m := make(map[string]string, 100)
+	for i := 0; i < 100; i++ {
+		key, val := fmt.Sprintf("key%v", i), fmt.Sprintf("val%v", i)
+		err = bc.Put([]byte(key), []byte(val))
+		m[key] = val
+		assert.Nil(t, err)
+	}
+
+	err = bc.Fold(func(key, val []byte) error {
+		expectedVal := m[string(key)]
+		assert.EqualValues(t, expectedVal, string(val))
+		delete(m, string(key))
+		return nil
+	})
+	assert.Nil(t, err)
+	assert.Zero(t, len(m))
+}

@@ -37,11 +37,11 @@ func (m *Merger) Start() {
 	m.wg.Add(1)
 	defer m.wg.Done()
 
-	ch := time.Tick(m.mergeOpt.Interval)
+	ticker := time.NewTicker(m.mergeOpt.Interval)
 
 	for {
 		select {
-		case <-ch:
+		case <-ticker.C:
 			mergedFiles, lastSegmentName, err := m.getMergeFilesName()
 			if err == ErrNotEnoughDataFiles {
 				continue
@@ -154,7 +154,7 @@ func (m *Merger) mergeData(filesName []string, lastSegmentName string) (*KeyDir,
 			val := buf.Next(int(valueSize))
 
 			// key/value pair is deleted
-			if bytes.Compare(val, tombstoneValue) == 0 {
+			if bytes.Equal(val, tombstoneValue) {
 				continue
 			}
 

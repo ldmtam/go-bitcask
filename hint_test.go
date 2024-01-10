@@ -8,7 +8,8 @@ import (
 )
 
 func TestCreateNewHint(t *testing.T) {
-	os.MkdirAll("test", 0775)
+	err := os.MkdirAll("test", 0775)
+	assert.Nil(t, err)
 	defer os.RemoveAll("test")
 
 	h, err := NewHint("test", "1.hint")
@@ -17,7 +18,8 @@ func TestCreateNewHint(t *testing.T) {
 }
 
 func TestSimpleWriteReadHint(t *testing.T) {
-	os.MkdirAll("test", 0775)
+	err := os.MkdirAll("test", 0775)
+	assert.Nil(t, err)
 	defer os.RemoveAll("test")
 
 	h, err := NewHint("test", "1.hint")

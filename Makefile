@@ -1,6 +1,10 @@
 run-test:
-	go test -v ./...
+	go test -coverprofile=profile.cov -v ./...
+	go tool cover -func=profile.cov | grep total | awk '{print $3}' | tee coverage.log
+	rm -rf coverage.log profile.cov
 
-run-coverage:
-	go test ./... -coverprofile=cover.out
-	go tool cover -html=cover.out
+check-lint:
+	golangci-lint run
+
+run-actions:
+	act --container-architecture linux/amd64

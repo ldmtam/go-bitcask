@@ -94,7 +94,10 @@ func (b *Bitcask) Put(key, val []byte) error {
 		segmentOffset = 0
 	}
 
-	b.activeSegment.Write(segmentOffset, encodedData)
+	err = b.activeSegment.Write(segmentOffset, encodedData)
+	if err != nil {
+		return err
+	}
 
 	b.keyDir.Set(key, &Entry{
 		FileID:    b.activeSegment.GetID(),
@@ -211,6 +214,9 @@ func warmupKeyDir(db *Bitcask, dirEntries []fs.DirEntry) error {
 
 func encode(key, val, ts []byte) ([]byte, error) {
 	rawData, err := encodeRawData(key, val, ts)
+	if err != nil {
+		return nil, err
+	}
 
 	// calculate checksum
 	checksum := crc32.ChecksumIEEE(rawData)

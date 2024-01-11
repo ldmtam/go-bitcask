@@ -101,8 +101,9 @@ func (m *Merger) getMergeFilesName() ([]string, string, error) {
 			lastSegmentName = fileName
 		}
 
-		// skip hint files
-		if path.Ext(fileName) == ".hint" {
+		// skip hint and merge files
+		fileExt := path.Ext(fileName)
+		if fileExt == ".hint" || fileExt == ".merge" {
 			continue
 		}
 

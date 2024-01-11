@@ -22,14 +22,14 @@ func TestSimpleWriteReadHint(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.RemoveAll("test")
 
-	h, err := NewHint("test", "1.hint")
+	h, err := NewHint("test", "000001.hint")
 	assert.Nil(t, err)
 	assert.NotNil(t, h)
 
 	keyDir := NewKeyDir()
 	key := []byte("key1")
 	entry := &Entry{
-		FileID:    "1.hint",
+		FileID:    "000001.merge",
 		ValueSize: 2,
 		ValuePos:  3,
 		Timestamp: uint32(1234),
@@ -43,7 +43,7 @@ func TestSimpleWriteReadHint(t *testing.T) {
 	err = h.Close()
 	assert.Nil(t, err)
 
-	h2, err := OpenHint("test", "1.hint")
+	h2, err := OpenHint("test", "000001.hint")
 	assert.Nil(t, err)
 	assert.NotNil(t, h2)
 

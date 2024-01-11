@@ -183,21 +183,11 @@ func warmupKeyDir(db *Bitcask, dirEntries []fs.DirEntry) error {
 
 	dataFilesName := make([]string, 0)
 
-	// warm up key dir from hint files
 	for _, fileName := range filesName {
 		fileExt := path.Ext(fileName)
 
-		// skip merge files
-		if fileExt == ".merge" {
-			continue
-		}
-
-		// skip data files which're already hinted
-		if fileExt == ".data" && fileNameMap[getHintFilename(extractID(fileName))] {
-			continue
-		}
-
-		if fileExt == ".hint" {
+		switch fileExt {
+		case ".hint": // warm up key dir from hint files
 			hint, err := OpenHint(db.option.DirName, fileName)
 			if err != nil {
 				return err
@@ -210,10 +200,10 @@ func warmupKeyDir(db *Bitcask, dirEntries []fs.DirEntry) error {
 			}
 
 			db.keyDir.Merge(keyDir)
-		}
-
-		if fileExt == ".data" {
+		case ".data":
 			dataFilesName = append(dataFilesName, fileName)
+		default:
+			continue
 		}
 	}
 

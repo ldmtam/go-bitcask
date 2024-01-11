@@ -107,12 +107,6 @@ func (m *Merger) getMergeFilesName() ([]string, string, error) {
 			continue
 		}
 
-		// skip data files which is already hinted
-		id := extractID(fileName)
-		if fileNameMap[getHintFilename(id)] {
-			continue
-		}
-
 		filesName = append(filesName, fileName)
 	}
 

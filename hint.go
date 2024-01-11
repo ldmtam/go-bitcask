@@ -88,7 +88,7 @@ func (h *Hint) Read() (*KeyDir, error) {
 		key := buf.Next(int(keySize))
 
 		entry := &Entry{
-			FileID:    h.id,
+			FileID:    getMergeFilename(extractID(h.id)),
 			ValueSize: int(valueSize),
 			ValuePos:  int(valuePos),
 			Timestamp: ts,

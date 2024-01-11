@@ -17,7 +17,7 @@ func TestMergeData(t *testing.T) {
 		WithDirName(dirName),
 		WithSegmentSize(128), // bytes
 		WithMergeOpt(&MergeOption{
-			Interval: 6 * time.Hour,
+			Interval: 300 * time.Millisecond,
 		}),
 	)
 	assert.Nil(t, err)
@@ -29,10 +29,7 @@ func TestMergeData(t *testing.T) {
 		assert.Nil(t, err)
 	}
 
-	m := NewMerger(dirName, bc.keyDir, &MergeOption{Interval: 50 * time.Millisecond})
-	go m.Start()
-
-	<-time.After(100 * time.Millisecond)
+	<-time.After(500 * time.Millisecond)
 
 	for i := 0; i < 100; i++ {
 		key, val := fmt.Sprintf("key%v", i), fmt.Sprintf("val%v", i)

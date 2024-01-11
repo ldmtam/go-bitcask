@@ -89,12 +89,12 @@ func TestSkipHintAndMergeFile(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		key, val := fmt.Sprintf("key%v", i), fmt.Sprintf("val%v", i)
-		fetchedVal, err := bc.Get([]byte(key))
+		fetchedVal, err := bc2.Get([]byte(key))
 		assert.Nil(t, err)
 		assert.EqualValues(t, val, fetchedVal)
 
 		key, val = fmt.Sprintf("newkey%v", i), fmt.Sprintf("newval%v", i)
-		fetchedVal, err = bc.Get([]byte(key))
+		fetchedVal, err = bc2.Get([]byte(key))
 		assert.Nil(t, err)
 		assert.EqualValues(t, val, fetchedVal)
 	}

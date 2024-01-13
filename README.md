@@ -72,3 +72,13 @@ if err != nil {
     log.Fatalf("fold over all key/value pairs failed: %v", err)
 }
 ```
+
+### Benchmark
+| Action        | Num of keys | Key size (byte) | Value size (byte) | Duration (second)
+| --------      | ----------- |---------------- |------------------ |-----------------
+| Put           | 1 000 000   |      8          |        128        |       2.809
+| Put           | 1 000 000   |      16         |        512        |       3.331
+| Put           | 10 000 000  |      8          |        128        |       30.047
+| Random Get    | 1 000 000   |      8          |        128        |       0.769
+| Random Get    | 1 000 000   |      16         |        512        |       0.867
+| Random Get    | 10 000 000  |      8          |        128        |       8.81

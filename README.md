@@ -5,10 +5,14 @@ A Log-Structured Hash Table for Fast Key/Value Data implemented in Golang
 
 Go-Bitcask storage engine features:
 1. Low latency per item read or written
+    - Write latency: ~80µs
+    - Read latency: ~17µs
 2. High throughput, especially when writing an incoming stream of random items
+    - Write throughput (per second): ~330_000
+    - Read throughput (per second): ~1_000_000
 3. Crash friendliness, both in terms of fast recovery and not losing data
 4. Ease of backup and restore
-5. Relatively simple, understandable code structure and data format with high unit-test coverage (84%)
+5. Relatively simple, understandable code structure  and data format with high unit-test coverage (84%)
 
 For more details, please reference to [Bitcask whitepaper](https://riak.com/assets/bitcask-intro.pdf)
 

@@ -25,12 +25,14 @@ func randStringRunes(n int) string {
 }
 
 func main() {
-	bench("./test", 1_000_000, 8, 128)
-	bench("./test", 1_000_000, 16, 512)
-	bench("./test", 10_000_000, 8, 128)
+	throughput("./test", 1_000_000, 8, 128)
+	throughput("./test", 1_000_000, 16, 512)
+	throughput("./test", 10_000_000, 8, 128)
+
+	latency("./test", 8, 128)
 }
 
-func bench(dirName string, numKeys int, keySize, valSize int) {
+func throughput(dirName string, numKeys int, keySize, valSize int) {
 	db, err := initDB(dirName)
 	if err != nil {
 		log.Fatalf("initialize database failed: %v", err)
@@ -61,6 +63,35 @@ func bench(dirName string, numKeys int, keySize, valSize int) {
 	}
 
 	fmt.Printf("Get %v items to database with %v-byte key and %v-byte value in %v\n", numKeys, keySize, valSize, time.Since(now))
+
+	os.RemoveAll(dirName)
+}
+
+func latency(dirName string, keySize, valSize int) {
+	db, err := initDB(dirName)
+	if err != nil {
+		log.Fatalf("initialize database failed: %v", err)
+	}
+	defer db.Close()
+
+	now := time.Now()
+
+	key := []byte(randStringRunes(keySize))
+	val := []byte(randStringRunes(valSize))
+	err = db.Put(key, val)
+	if err != nil {
+		log.Fatalf("put failed: %v", err)
+	}
+
+	fmt.Printf("Put one key/value pair takes: %v\n", time.Since(now).String())
+
+	now = time.Now()
+	_, err = db.Get(key)
+	if err != nil {
+		log.Fatalf("get failed: %v", err)
+	}
+
+	fmt.Printf("Get one key/value pair takes: %v\n", time.Since(now).String())
 
 	os.RemoveAll(dirName)
 }

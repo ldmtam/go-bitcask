@@ -74,8 +74,10 @@ if err != nil {
 ```
 
 ### Benchmark
+Machine information: Macbook Pro 2021 (16 inch), M1 Pro, 16 GB RAM, 512 GB SSD
+
 | Action        | Num of keys | Key size (byte) | Value size (byte) | Duration (second)
-| --------      | ----------- |---------------- |------------------ |-----------------
+| ------------- | ----------- |---------------- |------------------ |-----------------
 | Put           | 1 000 000   |      8          |        128        |       2.809
 | Put           | 1 000 000   |      16         |        512        |       3.331
 | Put           | 10 000 000  |      8          |        128        |       30.047

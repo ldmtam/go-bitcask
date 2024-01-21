@@ -80,11 +80,11 @@ if err != nil {
 ### Benchmark
 Machine information: Macbook Pro 2021 (16 inch), M1 Pro, 16 GB RAM, 512 GB SSD
 
-| Action        | Num of keys | Key size (byte) | Value size (byte) | Duration (second)
-| ------------- | ----------- |---------------- |------------------ |-----------------
-| Put           | 1 000 000   |      8          |        128        |       2.809
-| Put           | 1 000 000   |      16         |        512        |       3.331
-| Put           | 10 000 000  |      8          |        128        |       30.047
-| Random Get    | 1 000 000   |      8          |        128        |       0.769
-| Random Get    | 1 000 000   |      16         |        512        |       0.867
-| Random Get    | 10 000 000  |      8          |        128        |       8.81
+| Action        | Num of keys | Key size (byte) | Value size (byte) | Duration (second) | RAM usage (MB)
+| ------------- | ----------- |---------------- |------------------ |-------------------|----------------
+| Put           | 1 000 000   |      8          |        128        |       2.809       |      636
+| Put           | 1 000 000   |      16         |        512        |       3.331       |      1514
+| Put           | 10 000 000  |      8          |        128        |       30.047      |      5697
+| Random Get    | 1 000 000   |      8          |        128        |       0.769       |      N/A
+| Random Get    | 1 000 000   |      16         |        512        |       0.867       |      N/A
+| Random Get    | 10 000 000  |      8          |        128        |       8.81        |      N/A

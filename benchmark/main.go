@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime"
 	"time"
 
 	gobitcask "github.com/ldmtam/go-bitcask"
@@ -33,6 +34,13 @@ func main() {
 }
 
 func throughput(dirName string, numKeys int, keySize, valSize int) {
+	var m runtime.MemStats
+	defer func() {
+		runtime.ReadMemStats(&m)
+		fmt.Printf("OS RAM usage: %v\n", m.Sys/1024/1024)
+		runtime.GC()
+	}()
+
 	db, err := initDB(dirName)
 	if err != nil {
 		log.Fatalf("initialize database failed: %v", err)
